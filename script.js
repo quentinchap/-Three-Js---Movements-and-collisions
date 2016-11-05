@@ -12,7 +12,7 @@ function handleWindowResize() {
     camera.updateProjectionMatrix();
 }
 
-var WIDTH, HEIGHT, scene, camera, renderer, container, cube, shadowLight;
+var WIDTH, HEIGHT, scene, camera, renderer, container, cube, shadowLight, tween;
 
 function initScene() {
     HEIGHT = window.innerHeight;
@@ -84,6 +84,7 @@ function loop() {
     requestAnimationFrame(loop);
 
     renderer.render(scene, camera);
+    TWEEN.update();
 }
 
 
@@ -119,29 +120,38 @@ function createLights() {
 document.addEventListener('keydown', onDocumentKeyDown, false);
 
 function onDocumentKeyDown(event) {
-    var delta = 1;
+    var delta = 5;
     event = event || window.event;
     var keycode = event.keyCode;
+    var initPos = cube.position.clone();
+    var target = cube.position.clone();
 
     console.log(keycode);
 
     switch (keycode) {
         case 81: //left arrow
-            cube.position.x -= delta;
+
+            target.x -= delta;
             break;
 
         case 90: // up arrow 
-            cube.position.y += delta;
+            target.y += delta;
             break;
 
         case 68: // right arrow 
-            cube.position.x += delta;
+            target.x += delta;
             break;
 
         case 83: //down arrow
-            cube.position.y -= delta;
+            target.y -= delta;
             break;
     }
+
+    tween = new TWEEN.Tween(initPos).to(target, 100);
+    tween.onUpdate(function () {
+        cube.position.x = this.x;
+        cube.position.y = this.y;
+    }).start();
 
 }
 
