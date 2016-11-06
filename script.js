@@ -1,6 +1,42 @@
 
 window.addEventListener("resize", handleWindowResize, false);
 
+var WIDTH, HEIGHT, scene, camera, renderer, container, cube, shadowLight, tween;
+
+window.onload = function () {
+
+    var gui = new dat.GUI();
+
+    var MovingObjectMenu = gui.addFolder('Moving object');
+
+    var f1 = MovingObjectMenu.addFolder('Object position');
+    f1.add(cube.position, 'x', -35, 35).listen();
+    f1.add(cube.position, 'y', -35, 35).listen();
+    f1.add(cube.position, 'z', -15, 15).listen();
+    f1.open();
+
+    var f2 = MovingObjectMenu.addFolder('Object rotation');
+    f2.add(cube.rotation, 'x', -Math.PI, Math.PI).listen();
+    f2.add(cube.rotation, 'y', -Math.PI, Math.PI).listen();
+    f2.add(cube.rotation, 'z', -Math.PI, Math.PI).listen();
+    f2.open();
+
+    var cameraMenu = gui.addFolder('Camera');
+
+    var f3 = cameraMenu.addFolder('Camera position');
+    f3.add(camera.position, 'x', -300, 300).listen();
+    f3.add(camera.position, 'y', -300, 300).listen();
+    f3.add(camera.position, 'z', -300, 300).listen();
+    f3.open();
+
+    var f4 = cameraMenu.addFolder('Camera rotation');
+    f4.add(camera.rotation, 'x', -Math.PI, Math.PI).listen();
+    f4.add(camera.rotation, 'y', -Math.PI, Math.PI).listen();
+    f4.add(camera.rotation, 'z', -Math.PI, Math.PI).listen();
+    f4.open();
+
+};
+
 function handleWindowResize() {
 
     WIDTH = window.innerWidth;
@@ -11,8 +47,6 @@ function handleWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 }
-
-var WIDTH, HEIGHT, scene, camera, renderer, container, cube, shadowLight, tween;
 
 function initScene() {
     HEIGHT = window.innerHeight;
@@ -130,19 +164,22 @@ function onDocumentKeyDown(event) {
 
     switch (keycode) {
         case 81: //left arrow
-
+        case 37:
             target.x -= delta;
             break;
 
         case 90: // up arrow 
+        case 38:
             target.y += delta;
             break;
 
         case 68: // right arrow 
+        case 39:
             target.x += delta;
             break;
 
         case 83: //down arrow
+        case 40:
             target.y -= delta;
             break;
     }
