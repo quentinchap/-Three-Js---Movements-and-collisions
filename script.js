@@ -1,5 +1,7 @@
 
 window.addEventListener("resize", handleWindowResize, false);
+document.addEventListener('keydown', onDocumentKeyDown, false);
+
 
 var WIDTH, HEIGHT, scene, camera, renderer, container, cube, shadowLight, tween;
 
@@ -7,35 +9,28 @@ window.onload = function () {
 
     var gui = new dat.GUI();
 
-    var MovingObjectMenu = gui.addFolder('Moving object');
-
-    var f1 = MovingObjectMenu.addFolder('Object position');
-    f1.add(cube.position, 'x', -35, 35).listen();
-    f1.add(cube.position, 'y', -35, 35).listen();
-    f1.add(cube.position, 'z', -15, 15).listen();
-    f1.open();
-
-    var f2 = MovingObjectMenu.addFolder('Object rotation');
-    f2.add(cube.rotation, 'x', -Math.PI, Math.PI).listen();
-    f2.add(cube.rotation, 'y', -Math.PI, Math.PI).listen();
-    f2.add(cube.rotation, 'z', -Math.PI, Math.PI).listen();
-    f2.open();
-
-    var cameraMenu = gui.addFolder('Camera');
-
-    var f3 = cameraMenu.addFolder('Camera position');
-    f3.add(camera.position, 'x', -300, 300).listen();
-    f3.add(camera.position, 'y', -300, 300).listen();
-    f3.add(camera.position, 'z', -300, 300).listen();
-    f3.open();
-
-    var f4 = cameraMenu.addFolder('Camera rotation');
-    f4.add(camera.rotation, 'x', -Math.PI, Math.PI).listen();
-    f4.add(camera.rotation, 'y', -Math.PI, Math.PI).listen();
-    f4.add(camera.rotation, 'z', -Math.PI, Math.PI).listen();
-    f4.open();
+    basicControl(cube, 'Moving object', gui);
+    basicControl(camera, 'Camera', gui);
+    basicControl(shadowLight, 'Lights', gui);
 
 };
+
+function basicControl(obj, objName, gui) {
+    var menu = gui.addFolder(objName);
+    var f1 = menu.addFolder(objName + ' position');
+    f1.add(obj.position, 'x', -300, 300).listen();
+    f1.add(obj.position, 'y', -300, 300).listen();
+    f1.add(obj.position, 'z', -300, 300).listen();
+    f1.open();
+
+    var f4 = menu.addFolder(objName + ' rotation');
+    f4.add(obj.rotation, 'x', -Math.PI, Math.PI).listen();
+    f4.add(obj.rotation, 'y', -Math.PI, Math.PI).listen();
+    f4.add(obj.rotation, 'z', -Math.PI, Math.PI).listen();
+    f4.open();
+
+    return menu;
+}
 
 function handleWindowResize() {
 
@@ -53,6 +48,7 @@ function initScene() {
     WIDTH = window.innerWidth;
     scene = new THREE.Scene();
     scene.add(new THREE.AmbientLight(0x404040));
+    scene.obstacles = [];
 }
 
 function initCamera() {
@@ -99,6 +95,7 @@ function wall1() {
     w1.receiveShadow = true;
     w1.position.x = 25;
     w1.position.z -= 10;
+    scene.obstacles.push(w1);
     scene.add(w1);
 }
 
@@ -111,6 +108,7 @@ function wall2() {
     w2.receiveShadow = true;
     w2.position.x = -25;
     w2.position.z -= 10;
+    scene.obstacles.push(w2);
     scene.add(w2);
 }
 
@@ -148,10 +146,48 @@ function createLights() {
     //scene.add(new THREE.AmbientLight(0xffffff));
 }
 
+/** ---------------------------------------------------------- **
+ *                                                              *
+ *                      COLLISION SYSTEM                        *
+ *                                                              *
+ ** ---------------------------------------------------------- **/
 
+var rays, caster;
+function initCollisionDetection() {
+    rays = [
+        new THREE.Vector3(0, 0, 1),
+        new THREE.Vector3(1, 0, 1),
+        new THREE.Vector3(1, 0, 0),
+        new THREE.Vector3(1, 0, -1),
+        new THREE.Vector3(0, 0, -1),
+        new THREE.Vector3(-1, 0, -1),
+        new THREE.Vector3(-1, 0, 0),
+        new THREE.Vector3(-1, 0, 1)
+    ];
 
+    caster = new THREE.Raycaster();
+}
 
-document.addEventListener('keydown', onDocumentKeyDown, false);
+function collisionDetection() {
+
+    var collisions, i,
+
+        distance = 1,
+
+        obstacles = scene.obstacles;
+
+    for (i = 0; i < rays.length; i += 1) {
+        caster.set(cube.position, rays[i]);
+
+        collisions = caster.intersectObjects(obstacles);
+
+        if (collisions.length > 0 && collisions[0].distance <= distance) {
+            console.log("obstacles!");
+        }
+
+    }
+
+}
 
 function onDocumentKeyDown(event) {
     var delta = 5;
@@ -160,7 +196,6 @@ function onDocumentKeyDown(event) {
     var initPos = cube.position.clone();
     var target = cube.position.clone();
 
-    console.log(keycode);
 
     switch (keycode) {
         case 81: //left arrow
@@ -188,11 +223,13 @@ function onDocumentKeyDown(event) {
     tween.onUpdate(function () {
         cube.position.x = this.x;
         cube.position.y = this.y;
+        collisionDetection();
     }).start();
 
 }
 
 initScene();
+
 initContainer('container');
 initCamera();
 createLights();
@@ -207,7 +244,8 @@ plane = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), groundMaterial);
 plane.position.z -= 20;
 plane.receiveShadow = true;
 
-scene.add(plane);
 
+scene.add(plane);
+initCollisionDetection();
 
 loop();
