@@ -168,33 +168,36 @@ function initCollisionDetection() {
     caster = new THREE.Raycaster();
 }
 
-function collisionDetection() {
+function collisionDetection(delta) {
 
     var collisions, i,
 
-        distance = 1,
+        distance = delta;
 
         obstacles = scene.obstacles;
 
     for (i = 0; i < rays.length; i += 1) {
-        caster.set(cube.position, rays[i]);
+        caster.set(target, rays[i]);
 
         collisions = caster.intersectObjects(obstacles);
 
-        if (collisions.length > 0 && collisions[0].distance <= distance) {
-            console.log("obstacles!");
+        if (collisions.length > 0 && collisions[0].distance < distance) {
+            return true;
         }
 
     }
 
+    return false;
+
 }
 
+var initPos, target;
 function onDocumentKeyDown(event) {
     var delta = 5;
     event = event || window.event;
     var keycode = event.keyCode;
-    var initPos = cube.position.clone();
-    var target = cube.position.clone();
+    initPos = cube.position.clone();
+    target = cube.position.clone();
 
 
     switch (keycode) {
@@ -219,11 +222,15 @@ function onDocumentKeyDown(event) {
             break;
     }
 
+    if(collisionDetection(delta))
+    {
+        target = initPos;
+    }
+
     tween = new TWEEN.Tween(initPos).to(target, 100);
     tween.onUpdate(function () {
         cube.position.x = this.x;
         cube.position.y = this.y;
-        collisionDetection();
     }).start();
 
 }
