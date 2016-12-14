@@ -1,3 +1,5 @@
 # [Three Js] - Movements and collisions
 
-Three Js test. Command to move the cube: zqsd 
+Work around collision detection with threeJs. Command to move the cube: zqsd 
+
+**Live Demo:** https://quentinchapelle.com/threeJs/threeJsCollision/
